@@ -70,7 +70,11 @@ public class GmailService {
         String nextPageToken = null;
         do {
 
-            ListMessagesResponse response = gmail.users().messages().list("ne").setPageToken(nextPageToken).execute();
+            ListMessagesResponse response = gmail.users().messages().list("me")
+                    .setPageToken(nextPageToken)
+                    .setFields("nextPageToken") // Include only nextToken in response.
+                    .execute();
+
             nextPageToken = response.getNextPageToken();
             pageTokens.add(nextPageToken);
 
