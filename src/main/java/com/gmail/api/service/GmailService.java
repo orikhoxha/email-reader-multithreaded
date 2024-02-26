@@ -6,26 +6,23 @@ import com.gmail.api.util.EmailDecoderUtil;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
+@Qualifier("gmailService")
 public class GmailService extends AbstractEmailService<Message> implements EmailService<Message> {
 
     @Autowired
     private Gmail gmail;
-
-    private static final Logger logger = LoggerFactory.getLogger(GmailService.class);
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
