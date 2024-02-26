@@ -9,8 +9,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 @Configuration
 public class GmailConfiguration {
@@ -44,15 +42,5 @@ public class GmailConfiguration {
                 .jwkSetUri("https://www.googleapis.com/oauth2/v3/certs")
                 .clientName("Google")
                 .build();
-    }
-
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder
-                .withJwkSetUri(googleClientRegistration().getProviderDetails().getJwkSetUri())
-                .build();
-        decoder.setClaimSetConverter(new GoogleOAuth2TokenClaimSetConverter());
-
-        return decoder;
     }
 }
