@@ -1,6 +1,7 @@
 package com.gmail.api.controller;
 
 import com.gmail.api.domain.Email;
+import com.gmail.api.service.EmailService;
 import com.gmail.api.service.GmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.util.List;
 public class GmailController {
 
     @Autowired
-    private GmailService gmailService;
+    private EmailService gmailService;
 
     @GetMapping("/emails")
     public ResponseEntity<String> getAllEmails() {

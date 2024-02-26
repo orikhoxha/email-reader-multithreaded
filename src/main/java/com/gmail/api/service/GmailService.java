@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
-public class GmailService {
+public class GmailService extends AbstractEmailService<Message> implements EmailService<Message> {
 
     @Autowired
     private Gmail gmail;
@@ -29,35 +29,8 @@ public class GmailService {
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public CompletableFuture<List<Email>> getAllEmails() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                List<String> pageTokens = fetchPageTokens(); // Fetch all page tokens in separate thread
-                List<CompletableFuture<List<Message>>> messageFutures = new ArrayList<>();
-
-                // Parse each token page on a separated task
-                for (String pageToken : pageTokens) {
-                    CompletableFuture<List<Message>> messageFuture = CompletableFuture.supplyAsync(() -> { // Fetch each page emails in different thread
-                        try {
-                            return fetchMessagesForToken(pageToken);
-                        } catch (IOException ex) {
-                            throw new RuntimeException("Error fetching emails for token: " + pageToken, ex);
-                        }
-                    }, executorService);
-                    messageFutures.add(messageFuture);
-                }
-
-                // Wait for all CompletableFuture instances to complete and collect their results
-                return messageFutures.stream()
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList());
-            } catch (IOException ex) {
-                throw new RuntimeException("Error fetching emails", ex);
-            }
-        }, executorService).thenApplyAsync(this::processEmails, executorService);
-    }
-
-    private List<Message> fetchMessagesForToken(String pageToken) throws IOException{
+    @Override
+    protected List<Message> fetchMessagesForToken(String pageToken) throws IOException{
         ListMessagesResponse response;
         if (pageToken == null) response = gmail.users().messages().list("me").execute();
         else                   response = gmail.users().messages().list("me").setPageToken(pageToken).execute();
@@ -65,7 +38,8 @@ public class GmailService {
 
     }
 
-    private List<String> fetchPageTokens() throws IOException {
+    @Override
+    protected List<String> fetchPageTokens() throws IOException {
         List<String> pageTokens = new ArrayList<>();
         String nextPageToken = null;
         do {
@@ -82,14 +56,16 @@ public class GmailService {
         return pageTokens;
     }
 
-    private List<Email> processEmails(List<List<Message>> messageLists) {
+    @Override
+    protected List<Email> processEmails(List<List<Message>> messageLists) {
         return messageLists.stream()
                 .flatMap(List::stream)
                 .map(this::constructEmail)
                 .collect(Collectors.toList());
     }
 
-    private Email constructEmail(Message message) {
+    @Override
+    protected Email constructEmail(Message message) {
         Email email = new Email();
         String subject = EmailDecoderUtil.decodeHeader(message.getPayload().getHeaders(), "Subject");
         String from = EmailDecoderUtil.decodeHeader(message.getPayload().getHeaders(), "From");
